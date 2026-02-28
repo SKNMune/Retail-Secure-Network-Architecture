@@ -1,0 +1,191 @@
+Current configuration : 3802 bytes
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname Brain
+!
+!
+!
+enable secret 5 $1$mERr$RjtrBlewfVlXh6x1yj0S3.
+!
+!
+ip dhcp excluded-address 192.168.10.1 192.168.10.10
+ip dhcp excluded-address 192.168.20.1 192.168.20.10
+ip dhcp excluded-address 192.168.30.1 192.168.30.10
+ip dhcp excluded-address 192.168.40.1 192.168.40.10
+!
+ip dhcp pool mngpool
+ network 192.168.10.0 255.255.255.0
+ default-router 192.168.10.1
+ dns-server 8.8.8.8
+ip dhcp pool hrpool
+ network 192.168.20.0 255.255.255.0
+ default-router 192.168.20.1
+ dns-server 8.8.8.8
+ip dhcp pool stldpool
+ network 192.168.30.0 255.255.255.0
+ default-router 192.168.30.1
+ dns-server 8.8.8.8
+ip dhcp pool stfpool
+ network 192.168.40.0 255.255.255.0
+ default-router 192.168.40.1
+ dns-server 8.8.8.8
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+username senior privilege 15 secret 5 $1$mERr$LPruiAP4P3S7bEGRbrxhL0
+!
+!
+license udi pid CISCO2911/K9 sn FTX152490Q3-
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+ip ssh version 2
+ip domain-name store.com
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+ ip nat inside
+ ip access-group mngacl in
+!
+interface GigabitEthernet0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+ ip nat inside
+ ip access-group hracl in
+!
+interface GigabitEthernet0/0.30
+ encapsulation dot1Q 30
+ ip address 192.168.30.1 255.255.255.0
+ ip nat inside
+ ip access-group stldacl in
+!
+interface GigabitEthernet0/0.40
+ encapsulation dot1Q 40
+ ip address 192.168.40.1 255.255.255.0
+ ip nat inside
+ ip access-group stfacl in
+!
+interface GigabitEthernet0/0.99
+ encapsulation dot1Q 99 native
+ no ip address
+!
+interface GigabitEthernet0/1
+ ip address 8.8.8.1 255.255.255.0
+ ip nat outside
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip nat inside source list 1 interface GigabitEthernet0/1 overload
+ip classless
+ip route 0.0.0.0 0.0.0.0 8.8.8.8 
+!
+ip flow-export version 9
+!
+!
+ip access-list extended hracl
+ deny ip 192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255
+ permit udp any any eq bootps
+ permit udp any any eq bootpc
+ permit udp any any eq domain
+ permit tcp any any eq www
+ permit tcp any any eq 443
+ permit tcp any any established
+ permit icmp any any echo
+ permit icmp any any echo-reply
+ deny ip any any
+ip access-list extended stldacl
+ deny ip 192.168.30.0 0.0.0.255 192.168.10.0 0.0.0.255
+ deny ip 192.168.30.0 0.0.0.255 192.168.20.0 0.0.0.255
+ permit udp any any eq bootps
+ permit udp any any eq bootpc
+ permit udp any any eq domain
+ permit tcp any any eq www
+ permit tcp any any eq 443
+ permit tcp any any established
+ permit icmp any any echo
+ permit icmp any any echo-reply
+ deny ip any any
+ip access-list extended stfacl
+ deny ip 192.168.40.0 0.0.0.255 192.168.10.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.20.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.30.0 0.0.0.255
+ permit udp any any eq bootps
+ permit udp any any eq bootpc
+ permit udp any any eq domain
+ permit tcp any any eq www
+ permit tcp any any eq 443
+ permit tcp any any established
+ permit icmp any any echo
+ permit icmp any any echo-reply
+ deny ip any any
+access-list 1 permit 192.168.0.0 0.0.255.255
+ip access-list extended mngacl
+ deny ip 192.168.0.0 0.0.255.255 192.168.10.0 0.0.0.255
+ permit ip any any
+access-list 10 permit 192.168.10.0 0.0.0.255
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ access-class 10 in
+ access-class 10 out
+ exec-timeout 5 0
+ login local
+ transport input ssh
+line vty 5 15
+ access-class 10 in
+ access-class 10 out
+ exec-timeout 5 0
+ login local
+ transport input ssh
+!
+!
+!
+end
